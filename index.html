@@ -41,7 +41,7 @@
 }
 * { box-sizing: border-box; }
 body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
-.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 48px; display: grid; gap: 20px; }
+.wrap { width: 98%; margin: 0 auto; padding-inline: 0; padding-block: 28px 48px; display: grid; gap: 20px; }
 h1, h2 { font-family: var(--display); text-wrap: balance; margin: 0; }
 h1 { font-size: clamp(26px, 4vw, 38px); line-height: 1.1; letter-spacing: -0.01em; }
 h2 { font-size: 18px; line-height: 1.25; }
@@ -108,6 +108,7 @@ tfoot td { font-weight: 700; border-bottom: none; border-top: 2px solid var(--ax
 footer { font-size: 12.5px; color: var(--muted); }
 
 @media (max-width: 860px) {
+  .wrap { width: 100%; padding-inline: 16px; }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .two { grid-template-columns: minmax(0, 1fr); }
 }
@@ -124,11 +125,11 @@ footer { font-size: 12.5px; color: var(--muted); }
       <h1>Presupuesto escolar de Leonardo</h1>
       <p class="sub">De diciembre 2026 a noviembre 2027. Aporte 50 % papá y 50 % mamá. Montos en colones.</p>
     </div>
-    <span class="pill">Preliminar · actualizado 7 oct 2026</span>
+    <span class="pill">Preliminar · actualizado 8 oct 2026</span>
   </header>
 
   <section class="kpis" aria-label="Resumen">
-    <div class="kpi"><span class="label">Ingresos del año</span><span class="value" id="k-inc"></span><span class="note">12 aportes + aguinaldo + salario escolar</span></div>
+    <div class="kpi"><span class="label">Ingresos del año</span><span class="value" id="k-inc"></span><span class="note">12 aportes, aguinaldo, salario escolar y extra de diciembre</span></div>
     <div class="kpi"><span class="label">Gastos presupuestados</span><span class="value" id="k-exp"></span><span class="note" id="k-exp-note"></span></div>
     <div class="kpi"><span class="label">Gastos varios</span><span class="value" id="k-var"></span><span class="note" id="k-var-note"></span></div>
     <div class="kpi zero"><span class="label">Saldo al cierre de nov 2027</span><span class="value">₡0</span><span class="note">El sobrante se repartió en gastos varios</span></div>
@@ -145,7 +146,7 @@ footer { font-size: 12.5px; color: var(--muted); }
     <div class="chart" id="c-flow"><div class="tip" id="tip-flow" hidden></div></div>
     <div class="notice">
       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 15 14H1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 6v3.6M8 11.6v.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-      <span>De febrero a noviembre sale más de lo que entra. La diferencia se cubre con lo que sobra en diciembre y enero (aguinaldo y salario escolar), así que ese dinero hay que guardarlo.</span>
+      <span>Diciembre 2026 cierra en ₡0 gracias al aporte extra de ₡77.687 de cada uno. De febrero a noviembre sale más de lo que entra; la diferencia se cubre con lo que sobra en enero (salario escolar), así que ese dinero hay que guardarlo.</span>
     </div>
   </section>
 
@@ -162,7 +163,7 @@ footer { font-size: 12.5px; color: var(--muted); }
         <div class="eyebrow">Aporte por persona</div>
         <div class="split-bar" aria-hidden="true"><div></div><div></div></div>
         <div class="split-legend"><span>Papá · <span id="pa"></span></span><span>Mamá · <span id="ma"></span></span></div>
-        <div class="split-legend"><span>₡350.019 al mes, más aguinaldo (dic) y salario escolar (ene)</span></div>
+        <div class="split-legend"><span>₡350.019 al mes, más aguinaldo (dic), salario escolar (ene) y ₡77.687 extra en dic 2026</span></div>
       </div>
     </section>
 
@@ -188,22 +189,23 @@ footer { font-size: 12.5px; color: var(--muted); }
     </div>
   </section>
 
-  <footer>Fuente: Presupuesto Escolar 2027.xlsx. Almuerzos: 192 días × ₡3.000, repartidos en promedio entre febrero y noviembre (excluye 4 semanas de vacaciones y 5 feriados).</footer>
+  <footer>Fuente: Presupuesto Escolar 2027.xlsx. Gastos varios solo de enero a noviembre. Almuerzos: 192 días × ₡3.000, repartidos en promedio entre febrero y noviembre (excluye 4 semanas de vacaciones y 5 feriados).</footer>
 </div>
 
 <script>
 (function () {
   const fmt = n => "₡" + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  const signed = n => (n >= 0 ? "+" : "−") + fmt(Math.abs(n));
+  const signed = n => Math.abs(n) < 0.5 ? "₡0" : (n > 0 ? "+" : "−") + fmt(Math.abs(n));
   const short = n => n === 0 ? "₡0" : n >= 1e6 ? "₡" + (n / 1e6).toString().replace(".", ",") + " M" : "₡" + (n / 1e3) + " mil";
 
   const APORTE = 350019;
-  const VARIOS_TOTAL = 1096787;
-  const VAR = VARIOS_TOTAL / 12;
+  const EXTRA_DIC = 77687; // por persona, cubre el déficit de diciembre 2026
+  const VARIOS_TOTAL = 733161;
+  const VAR = VARIOS_TOTAL / 11; // gastos varios solo de enero a noviembre
   const ALM = 192 * 3000 / 10;
 
   const series = [
-    { key: "colegio", name: "Colegio", hint: "matrícula, mensualidad, libros", color: "var(--s1)" },
+    { key: "colegio", name: "Colegio", hint: "matrícula, mensualidades, libros", color: "var(--s1)" },
     { key: "bus", name: "Buseta", color: "var(--s2)" },
     { key: "alm", name: "Almuerzos", color: "var(--s3)" },
     { key: "ropa", name: "Ropa y uniformes", color: "var(--s4)" },
@@ -214,7 +216,7 @@ footer { font-size: 12.5px; color: var(--muted); }
   const mk = (mes, corto, inc, g, det) => ({ mes, corto, inc, g: Object.assign({ colegio: 0, bus: 0, alm: 0, ropa: 0, otros: 0, varios: VAR }, g), det });
   const regular = { colegio: 597000, bus: 51000, alm: ALM, otros: 15000 };
   const months = [
-    mk("Diciembre 2026", "Dic 26", 4 * APORTE, { colegio: 424450 + 597000, otros: 15000 }, "Libros, matrícula, ajedrez, varios"),
+    mk("Diciembre 2026", "Dic 26", 4 * APORTE + 2 * EXTRA_DIC, { colegio: 424450 + 597000 + 519000, otros: 15000, varios: 0 }, "Libros, matrícula, última mensualidad 2026, ajedrez"),
     mk("Enero 2027", "Ene", 4 * APORTE, { ropa: 130000, otros: 15000 }, "Uniformes, ajedrez, varios"),
     mk("Febrero 2027", "Feb", 2 * APORTE, Object.assign({}, regular, { otros: 15000 + 16295 }), "Mensualidad, buseta, almuerzos, ajedrez, seguro, varios"),
     mk("Marzo 2027", "Mar", 2 * APORTE, Object.assign({}, regular, { ropa: 150000 }), "Mensualidad, buseta, almuerzos, ropa y zapatos, ajedrez, varios")
@@ -233,8 +235,8 @@ footer { font-size: 12.5px; color: var(--muted); }
   const totExp = months.reduce((s, m) => s + m.exp, 0);
 
   const conceptos = [
-    { n: "Mensualidad", d: "10 × ₡597.000, feb–nov", v: 5970000, t: "Fijo", c: "var(--s1)" },
-    { n: "Gastos varios", d: "≈ ₡91.399 al mes", v: VARIOS_TOTAL, t: "Varios", c: "var(--s6)" },
+    { n: "Mensualidades (11)", d: "10 × ₡597.000 (2027) + ₡519.000 (dic 2026)", v: 6489000, t: "Fijo", c: "var(--s1)" },
+    { n: "Gastos varios", d: "≈ ₡66.651 al mes, ene–nov", v: VARIOS_TOTAL, t: "Varios", c: "var(--s6)" },
     { n: "Matrícula", d: "Diciembre 2026", v: 597000, t: "Fijo", c: "var(--s1)" },
     { n: "Almuerzos", d: "192 días × ₡3.000", v: 576000, t: "Aprox", c: "var(--s3)" },
     { n: "Buseta escolar", d: "10 × ₡51.000, feb–nov", v: 510000, t: "Fijo", c: "var(--s2)" },
@@ -252,7 +254,7 @@ footer { font-size: 12.5px; color: var(--muted); }
   const fijos = conceptos.filter(c => c.t === "Fijo").reduce((s, c) => s + c.v, 0);
   document.getElementById("k-exp-note").textContent = fmt(fijos) + " fijos · " + fmt(presup - fijos) + " aprox.";
   document.getElementById("k-var").textContent = fmt(VARIOS_TOTAL);
-  document.getElementById("k-var-note").textContent = "≈ " + fmt(VAR) + " por mes";
+  document.getElementById("k-var-note").textContent = "≈ " + fmt(VAR) + " por mes, de enero a noviembre";
   document.getElementById("pa").textContent = fmt(totInc / 2);
   document.getElementById("ma").textContent = fmt(totInc / 2);
 
@@ -263,10 +265,8 @@ footer { font-size: 12.5px; color: var(--muted); }
 
   const NS = "http://www.w3.org/2000/svg";
   const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
-  const ticks = [0, 500000, 1000000, 1500000];
-  const YMAX = 1500000;
-
-  function frame(container, W, H, M) {
+  function frame(container, W, H, M, YMAX) {
+    const ticks = []; for (let t = 0; t <= YMAX; t += 500000) ticks.push(t);
     const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img" });
     container.insertBefore(svg, container.firstChild);
     const y = v => M.t + (H - M.t - M.b) * (1 - v / YMAX);
@@ -292,8 +292,8 @@ footer { font-size: 12.5px; color: var(--muted); }
   // Chart 1: stacked monthly expenses + income tick
   (function () {
     const box = document.getElementById("c-flow"), tip = document.getElementById("tip-flow");
-    const W = 900, H = 340, M = { l: 70, r: 12, t: 14, b: 32 };
-    const { svg, y, band, cx } = frame(box, W, H, M);
+    const W = 1300, H = 380, M = { l: 70, r: 12, t: 14, b: 32 };
+    const { svg, y, band, cx } = frame(box, W, H, M, 2000000);
     svg.setAttribute("aria-label", "Gastos mensuales apilados por concepto y lo que entra cada mes, diciembre 2026 a noviembre 2027");
     const bw = band * 0.56;
     const hl = el("rect", { x: 0, y: M.t, width: band, height: H - M.t - M.b, fill: "var(--accent-soft)", opacity: 0 }, svg);
@@ -343,8 +343,8 @@ footer { font-size: 12.5px; color: var(--muted); }
   (function () {
     const box = document.getElementById("c-saldo"), tip = document.getElementById("tip-saldo");
     const W = 600, H = 260, M = { l: 66, r: 16, t: 26, b: 32 };
-    const { svg, y, cx } = frame(box, W, H, M);
-    svg.setAttribute("aria-label", "Saldo acumulado al final de cada mes, sube a 1,4 millones en enero y baja a cero en noviembre");
+    const { svg, y, cx } = frame(box, W, H, M, 1500000);
+    svg.setAttribute("aria-label", "Saldo acumulado al final de cada mes, sube a 1,2 millones en enero y baja a cero en noviembre");
     const pts = months.map((m, i) => [cx(i), y(m.acc)]);
     const line = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
     el("path", { d: line + ` L${pts[pts.length - 1][0]},${y(0)} L${pts[0][0]},${y(0)} Z`, fill: "var(--accent-soft)" }, svg);
@@ -383,7 +383,7 @@ footer { font-size: 12.5px; color: var(--muted); }
 
   // Table
   document.getElementById("tbody").innerHTML = months.map(m =>
-    `<tr><td>${m.mes}</td><td>${fmt(m.inc)}</td><td>${fmt(m.exp)}</td><td class="${m.net >= 0 ? "pos" : "neg"}">${signed(m.net)}</td><td class="${m.acc > 0 ? "pos" : ""}">${fmt(m.acc)}</td><td class="det">${m.det}</td></tr>`).join("");
+    `<tr><td>${m.mes}</td><td>${fmt(m.inc)}</td><td>${fmt(m.exp)}</td><td class="${m.net > 0.5 ? "pos" : m.net < -0.5 ? "neg" : ""}">${signed(m.net)}</td><td class="${m.acc > 0 ? "pos" : ""}">${fmt(m.acc)}</td><td class="det">${m.det}</td></tr>`).join("");
   document.getElementById("tfoot").innerHTML =
     `<tr><td>Total</td><td>${fmt(totInc)}</td><td>${fmt(totExp)}</td><td>${fmt(totInc - totExp)}</td><td>₡0</td><td></td></tr>`;
 })();
